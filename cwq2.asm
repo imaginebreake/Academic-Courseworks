@@ -48,27 +48,27 @@ main:
         syscall
         j exit
         
-add_with_check:
-        addu $s0, $s1, $s2
-        xor $t0, $s1, $s2
-        blt $t0, $zero, no_overflow
-        xor $t0, $s0, $s1
-        bge $t0, $zero, no_overflow
-        j print_overflow
+add_with_check:                       # there are two condition leads to a overflow in add (a+b=c):
+        addu $s0, $s1, $s2            # 1. sign of a and b are same && 2. sign of a or b and c are different
+        xor $t0, $s1, $s2             # if sign of $s1 and $s2 are diff then $t0 is less than 0
+        blt $t0, $zero, no_overflow   # if $t0 less than 0 then there is no overflow
+        xor $t0, $s0, $s1             # if sign of $s0 and $s1 are same then $t0 is greater than 0
+        bge $t0, $zero, no_overflow   # if $t0 greater than 0 (means sign of c and a have same sign), no overflow
+        j print_overflow              # if does not match all no_overflow condition, then there is a overflow
 
 mul_with_check:
         mult $s1, $s2                 # result is in lo. when result<0, hi = FFFFFFFF;result>=0, hi = 00000000; if overflow, 0 and 1 will flow in to hi.
         mfhi $t0
         mflo $s0
         sra $t1, $s0, 31              # $t1 = 00000000 or FFFFFFFF after sra
-        beq $t0, $t1, no_overflow    # if highest bit in lo duplicate to 32bit == bits in ho, no overflow. 
+        beq $t0, $t1, no_overflow     # if highest bit in lo duplicate to 32bit == bits in ho, no overflow. 
         j print_overflow              # overflow
 
 print_overflow:
         la $a0, overflow
         li $v0, 4
         syscall
-        j exit
+        j exit                        # jump back to main
         
 no_overflow:
         jr $ra
