@@ -1,13 +1,27 @@
         .data
 overflow:
         .asciiz "Overflow!\n"
+msg_inputx:
+        .asciiz "Enter x : "
+msg_inputy:
+        .asciiz "Enter y : "
+output: .asciiz "Result : "
         .text
         .globl main
         
 main:   
+        la $a0, msg_inputx
+        li $v0, 4
+        syscall
+         
         li $v0, 5
         syscall
         move $s6, $v0                 # load x in $s6
+        
+        la $a0, msg_inputy
+        li $v0, 4
+        syscall
+        
         li $v0, 5
         syscall
         move $s7, $v0                 # load y in $s7
@@ -43,6 +57,9 @@ main:
         jal add_with_check
         
         # print the result
+        la $a0, output
+        li $v0, 4
+        syscall
         move $a0, $s0
         li $v0, 1
         syscall

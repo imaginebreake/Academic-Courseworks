@@ -1,13 +1,29 @@
         .data
 space:  .asciiz " "   
 newline:.asciiz "\n"
+msg_error:
+        .asciiz "Invalid Input !"
+msg_input:
+        .asciiz "Please enter a positive number : "
         .text
         .globl main
+        
 main:   
+        la $a0, msg_input
+        li $v0, 4
+        syscall
         li $v0, 5
         syscall
+        bgt $v0, $zero, start
+        la $a0, msg_error
+        li $v0, 4
+        syscall
+        j exit
+
+start:
         move $s0, $v0
         li $t0, 0
+
 loop1:  
         beq $t0, $s0, exit              # exit when loop1 to end
         addi $t0, $t0, 1                # t0++ if not to end, print number form 1 to t0 by loop2
