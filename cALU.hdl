@@ -21,14 +21,14 @@
 
 CHIP cALU {
     IN  
-        x[16], y[16],  // 16-bit inputs        
+        x[16], y[16],  // 16-bit inputs
         nx, // negate the x input
         zy, // zero the y input
         ny, // negate the x input
         cx, // the value used for x at t+1 = out
-        re,  // compute out = x + y (if 1) or x & y (if 0)
+        re, // compute out = x + y (if 1) or x & y (if 0)
         no, // negate the out output
-        op;
+        op; // choose add or mul
 
     OUT 
         out[16], // 16-bit output
@@ -51,26 +51,19 @@ CHIP cALU {
     Not16(in=yzy, out=yzynot);
     Mux16(a=yzy, b=yzynot, sel=ny, out=yny);
     // calculate fxy
-    Add16(a=xnx, b=yny, out=fxy);
-    // of
-    Or16(a=xnx, b=xnx, out[15]=xsign);
-    Or16(a=yny, b=yny, out[15]=ysign);
-    Or16(a=fxy, b=fxy, out[15]=fsign);
-    Xor(a=xsign, b=ysign, out=notaddof1);
-    Not(in=notof1, out=addof1);
-    Xor(a=xsign, b=fsign, out=addof2);
-    And(a=addof1, b=addof2, out=addof);
-    Or(a=mulof, b=addof, out=of);
+    Addo16(x=xnx, y=yny, out=fadd, of=addof);
+    Mulo16(x=xnx, y=yny, out=fmul, of=mulof);
+    Mux16(a=fadd, b=fmul, sel=op, out=fxy);
     // no
     Not16(in=fxy, out=fxynot);
     Mux16(a=fxy, b=fxynot, sel=no, out=fxyno, out[15]=fxysign);
     // output
     Register(in=fxyno, load=true, out=out, out=regOut);
+    // of
+    Mux(a=addof, b=mulof, sel=op, out=of);
     // zr
     Or16Way(in=fxyno,out=zrout);
     Not(in=zrout,out=zr);
     // ng
-    And(a=fxysign, b=fxysign, out=ng);
-    // of
-    
+    And(a=fxysign, b=fxysign, out=ng);    
 }

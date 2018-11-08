@@ -92,11 +92,12 @@ CHIP Mulo16 {
     ShiftRight(in=xabs14, out=xabs15, out[0]=sel15);
 
     Mux16(a[0..15]=false, b=yabs, sel=sel15, out[0..0]=lo15bus1, out[1..15]=hi15bus15);
-    Add16(a[15..15]=lo15bus1, a[0..14]=false, b[0..15]=lo14, out=lo15);
+    Add16(a[15..15]=lo15bus1, a[0..14]=false, b[0..15]=lo14, out=lo15, out[15]=oflo);
     Add16(a[0..14]=hi15bus15, a[15..15]=false, b[0..15]=hi14, out=hi15);
     ShiftRight(in=xabs15, out=xabs16, out[0]=sel16);
 
-    Or16Way(in=hi15, out=of);
+    Or16Way(in=hi15, out=ofhi);
+    Or(a=ofhi, b=oflo, out=of);
 
     Not16(in=lo15, out=loneg1s);
     Add16(a=loneg1s, b[0]=true, b[1..15]=false, out=loneg2s);
