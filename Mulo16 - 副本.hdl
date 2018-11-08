@@ -1,0 +1,12 @@
+CHIP Mulo16 {
+    IN  
+        x[16], y[16];
+    OUT 
+        out[16], of;
+    
+    PARTS:
+    Xor(a=x[15], b=y[15], out=sign);
+    And16(a=x, b[0..14]=true, b[15]=false, out=xpos);
+    And16(a=x, b[0..14]=true, b[15]=false, out=xpos);
+
+}

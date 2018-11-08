@@ -1,0 +1,116 @@
+CHIP Mulo16 {
+    IN  
+        x[16], y[16];
+    OUT 
+        out[16], of;
+    
+    PARTS:
+    // get the sign of result
+    XOr16(a=x[15], b=y[15], out=sign);
+    // do absolute value for x and y
+    Or16(a=x, b=x, out[15]=xsign);
+    Not16(in=x, out=xneg1s);
+    Add16(a=xneg1s, b[0]=true, b[1..15]=false, out=xneg2s);
+    Mux16(a=x, b=xneg2s, sel=xsign, out=xabs0);
+    Or16(a=y, b=y, out[15]=ysign);
+    Not16(in=y, out=yneg1s);
+    Add16(a=yneg1s, b[0]=true, b[1..15]=false, out=yneg2s);
+    Mux16(a=y, b=yneg2s, sel=ysign, out=yabs);
+
+    Or16(a=xabs0, b=xabs0, out[0]=sel0);
+    Mux16(a[0..15]=false, b=yabs, sel=sel0,out[0..15]=lo0);
+    And16(a[0..15]=false, b[0..15]=false, out=hi0);
+    ShiftRight(in=xabs0, out=xabs1);
+
+    Or16(a=xabs1, b=xabs1, out[0]=sel1);
+    Mux16(a[0..15]=false, b=yabs, sel=sel1, out[0..14]=lo1bus15, out[15..15]=hi1bus1);
+    And16(a[1..15]=lo1bus15, a[0..0]=false, b[0..15]=lo0, out=lo1);
+    And16(a[0..0]=hi1bus1, a[1..15]=false, b[0..15]=hi0, out=hi1);
+    ShiftRight(in=xabs1, out=xabs2);
+
+    Or16(a=xabs2, b=xabs2, out[0]=sel2);
+    Mux16(a[0..15]=false, b=yabs, sel=sel2, out[0..13]=lo2bus14, out[14..15]=hi2bus2);
+    And16(a[2..15]=lo2bus14, a[0..1]=false, b[0..15]=lo1, out=lo2);
+    And16(a[0..1]=hi2bus2, a[2..15]=false, b[0..15]=hi1, out=hi2);
+    ShiftRight(in=xabs2, out=xabs3);
+
+    Or16(a=xabs3, b=xabs3, out[0]=sel3);
+    Mux16(a[0..15]=false, b=yabs, sel=sel3, out[0..12]=lo3bus13, out[13..15]=hi3bus3);
+    And16(a[3..15]=lo3bus13, a[0..2]=false, b[0..15]=lo2, out=lo3);
+    And16(a[0..2]=hi3bus3, a[3..15]=false, b[0..15]=hi2, out=hi3);
+    ShiftRight(in=xabs3, out=xabs4);
+
+    Or16(a=xabs4, b=xabs4, out[0]=sel4);
+    Mux16(a[0..15]=false, b=yabs, sel=sel4, out[0..11]=lo4bus12, out[12..15]=hi4bus4);
+    And16(a[4..15]=lo4bus12, a[0..3]=false, b[0..15]=lo3, out=lo4);
+    And16(a[0..3]=hi4bus4, a[4..15]=false, b[0..15]=hi3, out=hi4);
+    ShiftRight(in=xabs4, out=xabs5);
+
+    Or16(a=xabs5, b=xabs5, out[0]=sel5);
+    Mux16(a[0..15]=false, b=yabs, sel=sel5, out[0..10]=lo5bus11, out[11..15]=hi5bus5);
+    And16(a[5..15]=lo5bus11, a[0..4]=false, b[0..15]=lo4, out=lo5);
+    And16(a[0..4]=hi5bus5, a[5..15]=false, b[0..15]=hi4, out=hi5);
+    ShiftRight(in=xabs5, out=xabs6);
+
+    Or16(a=xabs6, b=xabs6, out[0]=sel6);
+    Mux16(a[0..15]=false, b=yabs, sel=sel6, out[0..9]=lo6bus10, out[10..15]=hi6bus6);
+    And16(a[6..15]=lo6bus10, a[0..5]=false, b[0..15]=lo5, out=lo6);
+    And16(a[0..5]=hi6bus6, a[6..15]=false, b[0..15]=hi5, out=hi6);
+    ShiftRight(in=xabs6, out=xabs7);
+
+    Or16(a=xabs7, b=xabs7, out[0]=sel7);
+    Mux16(a[0..15]=false, b=yabs, sel=sel7, out[0..8]=lo7bus9, out[9..15]=hi7bus7);
+    And16(a[7..15]=lo7bus9, a[0..6]=false, b[0..15]=lo6, out=lo7);
+    And16(a[0..6]=hi7bus7, a[7..15]=false, b[0..15]=hi6, out=hi7);
+    ShiftRight(in=xabs7, out=xabs8);
+
+    Or16(a=xabs8, b=xabs8, out[0]=sel8);
+    Mux16(a[0..15]=false, b=yabs, sel=sel8, out[0..7]=lo8bus8, out[8..15]=hi8bus8);
+    And16(a[8..15]=lo8bus8, a[0..7]=false, b[0..15]=lo7, out=lo8);
+    And16(a[0..7]=hi8bus8, a[8..15]=false, b[0..15]=hi7, out=hi8);
+    ShiftRight(in=xabs8, out=xabs9);
+
+    Or16(a=xabs9, b=xabs9, out[0]=sel9);
+    Mux16(a[0..15]=false, b=yabs, sel=sel9, out[0..6]=lo9bus7, out[7..15]=hi9bus9);
+    And16(a[9..15]=lo9bus7, a[0..8]=false, b[0..15]=lo8, out=lo9);
+    And16(a[0..8]=hi9bus9, a[9..15]=false, b[0..15]=hi8, out=hi9);
+    ShiftRight(in=xabs9, out=xabs10);
+
+    Or16(a=xabs10, b=xabs10, out[0]=sel10);
+    Mux16(a[0..15]=false, b=yabs, sel=sel10, out[0..5]=lo10bus6, out[6..15]=hi10bus10);
+    And16(a[10..15]=lo10bus6, a[0..9]=false, b[0..15]=lo9, out=lo10);
+    And16(a[0..9]=hi10bus10, a[10..15]=false, b[0..15]=hi9, out=hi10);
+    ShiftRight(in=xabs10, out=xabs11);
+
+    Or16(a=xabs11, b=xabs11, out[0]=sel11);
+    Mux16(a[0..15]=false, b=yabs, sel=sel11, out[0..4]=lo11bus5, out[5..15]=hi11bus11);
+    And16(a[11..15]=lo11bus5, a[0..10]=false, b[0..15]=lo10, out=lo11);
+    And16(a[0..10]=hi11bus11, a[11..15]=false, b[0..15]=hi10, out=hi11);
+    ShiftRight(in=xabs11, out=xabs12);
+
+    Or16(a=xabs12, b=xabs12, out[0]=sel12);
+    Mux16(a[0..15]=false, b=yabs, sel=sel12, out[0..3]=lo12bus4, out[4..15]=hi12bus12);
+    And16(a[12..15]=lo12bus4, a[0..11]=false, b[0..15]=lo11, out=lo12);
+    And16(a[0..11]=hi12bus12, a[12..15]=false, b[0..15]=hi11, out=hi12);
+    ShiftRight(in=xabs12, out=xabs13);
+
+    Or16(a=xabs13, b=xabs13, out[0]=sel13);
+    Mux16(a[0..15]=false, b=yabs, sel=sel13, out[0..2]=lo13bus3, out[3..15]=hi13bus13);
+    And16(a[13..15]=lo13bus3, a[0..12]=false, b[0..15]=lo12, out=lo13);
+    And16(a[0..12]=hi13bus13, a[13..15]=false, b[0..15]=hi12, out=hi13);
+    ShiftRight(in=xabs13, out=xabs14);
+
+    Or16(a=xabs14, b=xabs14, out[0]=sel14);
+    Mux16(a[0..15]=false, b=yabs, sel=sel14, out[0..1]=lo14bus2, out[2..15]=hi14bus14);
+    And16(a[14..15]=lo14bus2, a[0..13]=false, b[0..15]=lo13, out=lo14);
+    And16(a[0..13]=hi14bus14, a[14..15]=false, b[0..15]=hi13, out=hi14);
+    ShiftRight(in=xabs14, out=xabs15);
+
+    Or16(a=xabs15, b=xabs15, out[0]=sel15);
+    Mux16(a[0..15]=false, b=yabs, sel=sel15, out[0..0]=lo15bus1, out[1..15]=hi15bus15);
+    And16(a[15..15]=lo15bus1, a[0..14]=false, b[0..15]=lo14, out=lo15, out=out);
+    And16(a[0..14]=hi15bus15, a[15..15]=false, b[0..15]=hi14, out=hi15);
+    ShiftRight(in=xabs15, out=xabs16);
+
+    Or16Way(in=hi, out=of);
+}
