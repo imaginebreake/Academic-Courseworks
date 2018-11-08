@@ -1,8 +1,0 @@
-CHIP SLL{
-    IN in[16];
-    OUT out[16];
-    PARTS:
-    // Shift left is equal to the number multiplied by 2
-    // So it is number+number
-    Add16(a=in, b=in, out=out);
-}
