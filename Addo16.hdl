@@ -1,0 +1,14 @@
+CHIP Addo16 {
+    IN  
+        x[16], y[16];
+    OUT 
+        out[16], of;
+    
+    PARTS:
+    Add16(a=x, b=y, out=out, out=fadd);
+    Or16(a=fadd, b=fadd, out[15]=fsign);
+    Xor(a=x[15], b=y[15], out=notaddof1);
+    Not(in=notaddof1, out=addof1);
+    Xor(a=x[15], b=fsign, out=addof2);
+    And(a=addof1, b=addof2, out=of);
+}
