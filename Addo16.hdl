@@ -5,7 +5,9 @@ CHIP Addo16 {
         out[16], of;
     
     PARTS:
+    // add x and y
     Add16(a=x, b=y, out=out, out=fadd);
+    // check overflow
     Or16(a=fadd, b=fadd, out[15]=fsign);
     Xor(a=x[15], b=y[15], out=notaddof1);
     Not(in=notaddof1, out=addof1);
