@@ -4,18 +4,18 @@
 // if (zy == 1) set y = 0               // 16-bit constant
 // if (no == 1) set out = !out          // bitwise not
 // if (cx == 1)  set x = out            // 16-bit constant
-// if (re == 0)  set x = 0; y = 0        // 16-bit constant
+// if (re == 1)  set out = 0           // 16-bit constant
 // if (out == 0) set zr = 1             // 1-bit constant
 // if (out < 0) set ng = 1              // 1-bit constant
 
-CHIP cALU {
+CHIP calu {
     IN  
         x[16], y[16],  // 16-bit inputs
         nx, // negate the x input
         zy, // zero the y input
         ny, // negate the x input
         cx, // the value used for x at t+1 = out
-        re, // compute out = x + y (if 1) or x & y (if 0)
+        re, // let out is 0
         no, // negate the out output
         op; // choose add or mul
 
@@ -28,14 +28,11 @@ CHIP cALU {
     PARTS:
     // cx
     Mux16(a=x, b=regOut, sel=cx, out=xcx);
-    // reset
-    Mux16(a=xcx,b[0..15]=false,sel=re,out=xr);
-    Mux16(a=y,b[0..15]=false,sel=re,out=yr);
     // nx
-    Not16(in=xr, out=xrnot);
-    Mux16(a=xr, b=xrnot, sel=nx, out=xnx);
+    Not16(in=xcx, out=xcxnot);
+    Mux16(a=xcx, b=xcxnot, sel=nx, out=xnx);
     // zy
-    Mux16(a=yr,b[0..15]=false,sel=zy,out=yzy);
+    Mux16(a=y,b[0..15]=false,sel=zy,out=yzy);
     // ny
     Not16(in=yzy, out=yzynot);
     Mux16(a=yzy, b=yzynot, sel=ny, out=yny);
@@ -45,13 +42,15 @@ CHIP cALU {
     Mux16(a=fadd, b=fmul, sel=op, out=fxy);
     // no
     Not16(in=fxy, out=fxynot);
-    Mux16(a=fxy, b=fxynot, sel=no, out=fxyno, out[15]=fxysign);
+    Mux16(a=fxy, b=fxynot, sel=no, out=fxyno);
+    // re
+    Mux16(a=fxyno, b[0..15]=false, sel=re, out=fxyre, out[15]=fxysign);
     // output
-    Register(in=fxyno, load=true, out=out, out=regOut);
+    Register(in=fxyre, load=true, out=out, out=regOut);
     // of
     Mux(a=addof, b=mulof, sel=op, out=of);
     // zr
-    Or16Way(in=fxyno,out=zrout);
+    Or16Way(in=fxyre,out=zrout);
     Not(in=zrout,out=zr);
     // ng
     And(a=fxysign, b=fxysign, out=ng);    

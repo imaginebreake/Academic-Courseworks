@@ -1,5 +1,5 @@
-load cALU.hdl,
-output-file cALU7th.out,
+load calu.hdl,
+output-file calu7th.out,
 output-list time%S1.4.1 x%B1.16.1 y%B1.16.1 nx%B1.1.1 zy%B1.1.1 
             ny%B1.1.1 no%B1.1.1 cx%B1.1.1 re%B1.1.1 
             op%B1.1.1 out%B1.16.1 zr%B1.1.1 ng%B1.1.1 of%B1.1.1;      
