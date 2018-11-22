@@ -12,44 +12,9 @@
 M = 0
 // store previous keyboard input
 @PreKBDtmp
-M = 0
 // store the KBD value for following constructions
 @KBDtmp
 M = 0
-
-(CheckFirstIsNumber)
-// KBD < 48, CheckFirstIsNumber
-@KBD
-D = M
-@KBDtmp
-M = D
-@48
-D = D - A
-@CheckFirstIsNumber
-D;JLT
-// KBD > 57, CheckFirstIsNumber
-@KBDtmp
-D = M
-@57
-D = D - A
-@CheckFirstIsNumber
-D;JGT
-
-//Clear Data
-@R0
-M = 0;
-@R1
-M = 0;
-@R2
-M = 0;
-@R3
-M = 0;
-@R4
-M = 0;
-
-//Assign Data Immediately
-@AssignValue
-0;JMP
 
 (GetInput)
 // Get KeyBoard Value
@@ -60,11 +25,6 @@ M = D
 // If Value is NULL then loop
 @GetInput
 D;JEQ
-// Check Equal Operator
-@61
-D = D - A
-@FormatInput
-D;JEQ
 // Check Same Input
 @PreKBDtmp
 D = M
@@ -72,15 +32,22 @@ D = M
 D = D - M
 @GetInput
 D;JEQ
-// Assign KBD value to Register
-(AssignValue)
+// Assign KBDtmp value to PreKBDtmp
+@KBDtmp
+D = M
+@PreKBDtmp
+M = D
+// Check Equal Operator
+@61
+D = D - A
+@FormatInput
+D;JEQ
+// Assign KBDtmp value to Register
 @KBDtmp
 D = M
 M = 0
 @i
 A = M
-M = D
-@PreKBDtmp
 M = D
 @i
 M = M + 1
@@ -89,6 +56,11 @@ M = M + 1
 0;JMP
 
 (FormatInput)
+// Clear Data
+@R3
+M = 0
+@R4
+M = 0
 // Change number from ASCII to actual value
 // first number
 @R0
