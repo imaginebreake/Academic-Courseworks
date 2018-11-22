@@ -3,17 +3,89 @@
 // this program implement the single-digit arithmetic calculation
 // output the calculation result
 //
-// 
+// sample program in C language (NOT FOR RUN)
+// int GetInput(int KBDtmp, int *i, int *PreKBDtmp) {
+    // if (KBDtmp == 0) {
+        // return 0;
+    // }
+    // if (KBDtmp == *PreKBDtmp) {
+        // return 0;
+    // }
+    // *PreKBDtmp = KBDtmp;
+    // if (KBDtmp == 61){
+        // return 1;
+    // }
+    // RAM[*i] = KBDtmp;
+    // KBDtmp = 0;
+    // *i++;
+    // return 0;
+// }
+// int add(int x, int y){
+    // return x+y;
+// }
+// int minus(int x, int y){
+    // return x-y;
+// }
+// int mul(int x, int y){
+    // int sum;
+    // do {
+        // y--;
+        // sum += x;
+    // } while(y>0);
+    // return sum;
+// }
+// int div(int x, int y){
+    // int sum;
+    // while (x >= 0){
+        // x = x - y;
+        // sum++;
+    // }
+    // if (y+2x > 0){
+        // sum++;
+    // }
+    // return sum;
+// }
+// int main(int argc, char *argv[]){
+// int PreKBDtmp = 0;
+// while(1){
+	// int i = 0;
+	// while (!GetInput(KBD, &i, &PreKBDtmp)){
+    // }
+    // RAM[3] = 0;
+    // RAM[4] = 0;
+    // RAM[0] = RAM[0] - 48;
+    // RAM[2] = RAM[2] - 48;
+    // if (RAM[1] == 43){
+        // RAM[1] = 1;
+        // RAM[4] = add(RAM[0], RAM[2]);
+    // }
+    // else if (RAM[1] == 45){
+        // RAM[1] = 2;
+        // RAM[4] = minus(RAM[0], RAM[2]);
+    // }
+    // else if (RAM[1] == 42){
+        // RAM[1] = 3;
+        // RAM[4] = mul(RAM[0], RAM[2]);
+    // }
+    // else if (RAM[1] == 47){
+        // RAM[1] = 4;
+        // RAM[4] = div(RAM[0], RAM[2]);
+    // }
+    // else{
+        // continue;
+    // }
+    // RAM[3] = 5;
+// }}
+// END OF SAMPLE
 
-(LOOP)
-
-// i is a iterator
-@i
-M = 0
+// START OF PROGRAM
 // store previous keyboard input
 @PreKBDtmp
-// store the KBD value for following constructions
-@KBDtmp
+M = 0
+
+(LOOP)
+// i is a iterator
+@i
 M = 0
 
 (GetInput)
@@ -22,7 +94,7 @@ M = 0
 D = M
 @KBDtmp
 M = D
-// If Value is NULL then loop
+// If Value is 0 then loop
 @GetInput
 D;JEQ
 // Check Same Input
@@ -116,7 +188,7 @@ D;JEQ
 D = A
 @R1
 M = D
-// add
+// add45
 @R0
 D = M
 @R2
@@ -227,7 +299,7 @@ D = D + M
 D = D + M
 @Exit
 D;JLT
-@z
+@R4
 M = M + 1
 @Exit
 0;JMP
