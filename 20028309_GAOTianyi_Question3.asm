@@ -1,7 +1,7 @@
         .data
 string: .space 256
 origin: .space 20
-replace:.space 20
+new:.space 20
 msg1:   .asciiz "Input string: "
 msg2:   .asciiz "Input character: "
 msg3:   .asciiz "Output: "
@@ -33,26 +33,17 @@ main:
         syscall
         
         li $v0, 8             # read new character
-        la $a0, replace
+        la $a0, new
         li $a1, 20
         syscall
         
-        la $s0, origin
-        lb $s0, 0($s0)        # get the byte of origin character
-        la $s1, replace
-        lb $s1, 0($s1)        # get the byte of new character
+        la $t1, origin
+        lb $a1, 0($t1)        # get the byte of origin character
+        la $t2, new
+        lb $a2, 0($t2)        # get the byte of new character
         la $a0, string        # point $a0 to the start of string
         
-loop:
-        lb $t0, ($a0)         # load the signal character in string to $t0
-        bne $t0, $s0, next    # check if this character != origin character. if yes, jump to next
-        sb $s1, ($a0)         # store byte in $s1 (new character) to $s1
-
-next:  
-        addi $a0, $a0, 1      # point $a0 to next character
-        lb $t0, ($a0)         # load the signal character in string to $t0
-        bne $t0, $zero, loop  # if $t0 is not null then do loop
-        j exit                # to the string end, exit the program
+        jal replace
         
 exit:
         la $a0, string
@@ -60,3 +51,19 @@ exit:
         syscall
         li $v0, 10
         syscall
+        
+replace:
+        move $t1, $a1
+        move $t2, $a2
+replace_loop:
+        addi $a0, $a0, 1      # point $a0 to next character
+replace_cond:
+        lb $t0, ($a0)         # load the single character in string to $t0
+        beq $t0, $zero, replace_exit  # if $t0 is null then do exit
+        bne $t0, $t1, replace_loop    # check if this character != origin character. if yes, jump to next
+        sb $t2, ($a0)         # store byte in $t2 (new character) to $a0
+        j replace_loop
+replace_exit:
+        jr $ra                # jump back
+
+        

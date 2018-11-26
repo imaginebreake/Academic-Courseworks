@@ -78,7 +78,7 @@ mul_with_check:
         mfhi $t0
         mflo $s0
         sra $t1, $s0, 31              # $t1 = 00000000 or FFFFFFFF after sra
-        beq $t0, $t1, no_overflow     # if highest bit in lo duplicate to 32bit == bits in ho, no overflow. 
+        beq $t0, $t1, no_overflow     # if (highest bit in lo duplicate to 32bit) == (bits in hi), no overflow. 
         j print_overflow              # overflow
 
 print_overflow:
