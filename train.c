@@ -1,183 +1,103 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+const int INF = 9999999;
+//---------------------------------------//
+// StringList
+// This is used for graph
 
-/* Unsorted string list. */
-struct string_list
+typedef struct string_list
 {
     char *value;
     struct string_list *next;
-};
-typedef struct string_list StringList;
+} StringList;
 
-// Given a list, print the values in the list.
 void list_print(StringList *start)
 {
-    StringList *cur = start;
+    StringList *tmp = start;
+
     printf("[");
-    if (cur != NULL)
+    while (tmp->next != NULL)
     {
-        printf("%s", cur->value);
-        while (cur->next != NULL)
-        {
-            cur = cur->next;
-            printf(",%s", cur->value);
-        }
+        printf("%s,", tmp->value);
+        tmp = tmp->next;
     }
-    printf("]\n");
+    printf("%s]\n", tmp->value);
 }
 
-// Given a list, append the given value to the list.
-// Return true/false on success/failure.
 int list_append(StringList **start, char *val)
 {
     if (*start == NULL)
     {
-        StringList *n = malloc(sizeof(StringList));
-        if (n == NULL)
+        StringList *tmp = malloc(sizeof(StringList));
+        if (tmp == NULL)
         {
-            // error, cannot allocate memory for new list node.
-            return 0;
+            return -1;
         }
-        n->value = val;
-        n->next = NULL;
-        *start = n;
+        else
+        {
+            tmp->value = val;
+            tmp->next = NULL;
+        }
+        *start = tmp;
     }
     else
     {
-        StringList *cur = *start;
-        while (cur->next != NULL)
+        StringList *last = *start;
+        while (last->next != NULL)
         {
-            cur = cur->next;
+            last = last->next;
         }
-        StringList *n = malloc(sizeof(StringList));
-        if (n == NULL)
+        StringList *tmp = malloc(sizeof(StringList));
+        if (tmp == NULL)
         {
-            // error, cannot allocate memory for new list node.
-            return 0;
+            return -1;
         }
-        n->value = val;
-        n->next = NULL;
-        cur->next = n;
+        tmp->value = val;
+        tmp->next = NULL;
+        last->next = tmp;
     }
     return 1;
 }
 
-// Given a list, prepend the given value to the list.
-// Return true/false on success/failure.
-int list_prepend(StringList **start, char *val)
-{
-    StringList *n = malloc(sizeof(StringList));
-    if (n == NULL)
-    {
-        // error, cannot allocate memory for new list node.
-        return 0;
-    }
-    n->value = val;
-    n->next = NULL;
-
-    if (*start == NULL)
-    {
-        // empty list
-        *start = n;
-    }
-    else
-    {
-        // existing list
-        n->next = *start;
-        *start = n;
-    }
-    return 1;
-}
-
-// Given a list, insert a new val after the n'th position of the list
-// (zero-based). If n < 0, insert at beginning.  If n >= length, insert at end.
-// Return true/false on success/failure.
-int list_insert(StringList **start, int n, char *val)
-{
-    if (*start == NULL || n <= 0)
-    {
-        // if empty, just reuse the prepend function to put it in list.
-        // if n == 0, then we should prepend anyway.
-        return list_prepend(start, val);
-    }
-    else
-    {
-        n--; // we've already dealt with the first position above, so decrement n.
-        StringList *prev = *start;
-        StringList *cur = (*start)->next;
-
-        StringList *el = malloc(sizeof(StringList));
-        if (el == NULL)
-        {
-            return 0;
-        }
-        el->value = val;
-        el->next = NULL; // we overwrite this later, setting NULL here is for safety
-                         // in case we make a mistake and forget to set it later.
-
-        while (cur != NULL)
-        {
-            if (n == 0)
-            {
-                prev->next = el;
-                el->next = cur;
-                return 1;
-            }
-            n--;
-            prev = cur;
-            cur = cur->next;
-        }
-        prev->next = el;
-        el->next = NULL;
-        return 1;
-    }
-}
-
-// Given a list, free all the elements of the list and set the start to NULL
-// so we don't accidentally use it in the future.
 void list_free(StringList **start)
 {
-    StringList *cur = *start;
-    while (cur != NULL)
+    StringList *tmp = *start;
+    while (tmp != NULL)
     {
-        StringList *temp = cur->next;
-        free(cur);
-        cur = temp;
+        StringList *next = tmp->next;
+        free(tmp);
+        tmp = next;
     }
     *start = NULL;
 }
 
-// Given a list, return the value of the n'th position (zero-based).
-// If n is out-of-bounds, return NULL.
-char *list_get(StringList *start, int n)
+char *list_get(StringList *start, int index)
 {
-    StringList *cur = start;
-    if (n < 0)
+    StringList *tmp = start;
+    if (index < 0)
     {
         return NULL;
     }
-    while (cur != NULL)
+    while (tmp != NULL)
     {
-        if (n == 0)
+        if (index == 0)
         {
-            return cur->value;
+            return tmp->value;
         }
         else
         {
-            n--;
-            cur = cur->next;
+            index--;
+            tmp = tmp->next;
         }
     }
     return NULL;
 }
 
-// Returns the index of the given value in the list, or -1 if not present.
 int list_index(StringList *start, char *val)
 {
     int i = 0;
     StringList *cur = start;
-
     while (cur != NULL)
     {
         if (strcmp(cur->value, val) == 0)
@@ -190,7 +110,6 @@ int list_index(StringList *start, char *val)
     return -1;
 }
 
-// Given a list, return the length of the list.
 int list_length(StringList *start)
 {
     int len = 0;
@@ -202,6 +121,81 @@ int list_length(StringList *start)
     }
     return len;
 }
+
+//---------------------------------------//
+// Adjacency matrix graph
+typedef struct adj_matrix_graph
+{
+    StringList *vertex_names;
+    int *edge_array;
+} Graph;
+
+Graph *graph_create()
+{
+    Graph *graph = malloc(sizeof(Graph));
+    if (graph == NULL)
+    {
+        return NULL;
+    }
+    graph->vertex_names = NULL;
+    graph->edge_array = NULL;
+    return graph;
+}
+
+int graph_init(Graph *graph, int n, StringList *vertex_names)
+{
+    if (graph == NULL || n <= 0 || vertex_names == NULL)
+    {
+        return 0;
+    }
+    graph->vertex_names = vertex_names;
+    graph->edge_array = malloc(sizeof(int) * n * n);
+    if (graph->edge_array == NULL)
+    {
+        return -1;
+    }
+    for (int i = 0; i < n * n; i++)
+    {
+        graph->edge_array[i] = INF;
+    }
+    return 1;
+}
+
+int graph_add_edge(Graph *graph, char *from_vertex, char *to_vertex,
+                   int value)
+{
+    if (graph == NULL || from_vertex == NULL || to_vertex == NULL)
+    {
+        return 0;
+    }
+    int from_index = list_index(graph->vertex_names, from_vertex);
+    int to_index = list_index(graph->vertex_names, to_vertex);
+    int len = list_length(graph->vertex_names);
+    if (from_index == -1 || to_index == -1)
+    {
+        return 0;
+    }
+    graph->edge_array[len * from_index + to_index] = value;
+    return 1;
+}
+
+void graph_print(Graph *graph)
+{
+    list_print(graph->vertex_names);
+    int len = list_length(graph->vertex_names);
+    for (int i = 0; i < len; i++)
+    {
+        printf("%10s\t", list_get(graph->vertex_names, i));
+        for (int j = 0; j < len; j++)
+        {
+            printf("%5d\t", graph->edge_array[len * i + j]);
+        }
+        printf("\n\n");
+    }
+}
+
+//---------------------------------------//
+// Function for process file input
 
 int readline(char **line, FILE *fp)
 {
@@ -245,14 +239,15 @@ int readline(char **line, FILE *fp)
 int str2int(char *str)
 {
     int res = 0;
-    for(int i = 0;i<strlen(str);i++){
-            res = res*10 + str[i] - '0';
+    for (int i = 0; i < strlen(str); i++)
+    {
+        res = res * 10 + str[i] - '0';
     }
     return res;
 }
 
 int processCell(int coloum, int row, StringList **station_names, char *value,
-                char *from_station)
+                char *from_station, Graph *graph)
 {
     StringList *station_names_tmp = *station_names;
     int len = strlen(value);
@@ -275,15 +270,16 @@ int processCell(int coloum, int row, StringList **station_names, char *value,
     {
         char *to_station = list_get(station_names_tmp, row - 2);
         int distance = str2int(value);
-        printf("From:%s To:%s Distance:%d\n", from_station, to_station, distance);
+        //printf("From:%s To:%s Distance:%d\n", from_station, to_station, distance);
+        graph_add_edge(graph, from_station, to_station, distance);
     }
     return 1;
 }
 
-int readFile(const char *filename)
+int readFile(const char *filename, Graph *graph)
 {
     FILE *fp;
-    printf("%s", filename);
+    //printf("%s", filename);
     StringList *station_names = NULL;
     fp = fopen(filename, "r");
     if (fp == NULL)
@@ -296,9 +292,13 @@ int readFile(const char *filename)
         int coloum = 1;
         while (!feof(fp))
         {
+            if (coloum == 2)
+            {
+                graph_init(graph, list_length(station_names), station_names);
+            }
             char *line;
             readline(&line, fp);
-            printf("\nColoum : %d\n", coloum);
+            //printf("\nColoum : %d\n", coloum);
             int row = 1;
             int pos = 0;
             int temp_len = 0;
@@ -314,12 +314,12 @@ int readFile(const char *filename)
                     if (row == 1 && coloum != 1)
                     {
                         from_station = malloc(sizeof(char) * (temp_len + 1));
-                        printf("%p ", from_station);
+                        //printf("%p ", from_station);
                         strcpy(from_station, temp);
                         from_station[temp_len] = '\0';
-                        printf("%s\n", from_station);
+                        //printf("%s\n", from_station);
                     }
-                    processCell(coloum, row, &station_names, temp, from_station);
+                    processCell(coloum, row, &station_names, temp, from_station, graph);
                     // printf("%s %p %d %d %d\n", temp, temp, row, temp_len, pos);
                     pos = i + 1;
                     temp_len = 0;
@@ -334,11 +334,113 @@ int readFile(const char *filename)
             free(line);
             free(from_station);
             coloum++;
-            list_print(station_names);
+            //list_print(station_names);
         }
         fclose(fp);
     }
     return 1;
 }
 
-int main(int argc, char *argv[]) { readFile(argv[1]); }
+int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
+{
+    int from_index = list_index(graph->vertex_names, from_station);
+    int to_index = list_index(graph->vertex_names, to_station);
+    int len = list_length(graph->vertex_names);
+    int d[len], path[len], visit[len];
+    for (int i = 0; i < len; i++)
+    {
+        d[i] = graph->edge_array[len * to_index + i];
+        path[i] = to_index;
+        visit[i] = 0;
+    }
+    visit[to_index] = 1;
+    d[to_index] = 0;
+    for (int i = 1; i < len; i++)
+    {
+        int min_num = -1;
+        int min = INF;
+        for (int j = 0; j < len; j++)
+        {
+            if (visit[j] == 0 && d[j] <= min)
+            {
+                min = d[j];
+                min_num = j;
+            }
+        }
+        visit[min_num] = 1;
+        for (int j = 0; j < len; j++)
+        {
+            //printf("%d %d %d\n",min_num,min,graph->edge_array[len * min_num + j]);
+            if (d[j] > min + graph->edge_array[len * min_num + j])
+            {
+                path[j] = min_num;
+                d[j] = min + graph->edge_array[len * min_num + j];
+            }
+        }
+    }
+    if (d[from_index] >= INF)
+    {
+        printf("No possible journey.\n");
+    }
+    else if (from_index == to_index){
+        printf("No journey, same start and end station.\n");
+    }
+    else if (path[from_index] == to_index)
+    {
+        printf("From %s\ndirect\nTo %s\n", from_station, to_station);
+        printf("Distance %d km\n", d[from_index]);
+    }
+    else
+    {
+        printf("From %s\nvia\n", from_station);
+        int i = path[from_index];
+        while (i != to_index)
+        {
+            printf("%s\n", list_get(graph->vertex_names, i));
+            i = path[i];
+        }
+        printf("To %s\n", to_station);
+        printf("Distance %d km\n", d[from_index]);
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    Graph *graph = graph_create();
+    readFile(argv[1], graph);
+    graph_print(graph);
+    int len = list_length(graph->vertex_names);
+    for (int i = 0; i<len;i++){
+        for (int j = 0; j<len;j++){
+            shortest_dijkstra(graph, list_get(graph->vertex_names,i), list_get(graph->vertex_names,j));
+        }
+    }
+ /**   shortest_dijkstra(graph, "Wenzhou", "Hangzhou");
+    shortest_dijkstra(graph, "Hangzhou", "Wenzhou");
+    shortest_dijkstra(graph, "Wenzhou", "Fuzhou");
+    while (1)
+    {
+        char from_station[100];
+        printf("Start station: ");
+        scanf("%s", &from_station);
+        if (strlen(from_station) == 0)
+        {
+            exit(0);
+        }
+        else if (list_index(graph->vertex_names, from_station) < 0)
+        {
+            printf("No such station.\n");
+            continue;
+        }
+        char to_station[100];
+        printf("End station: ");
+        scanf("%s", &to_station);
+        if (list_index(graph->vertex_names, to_station) < 0)
+        {
+            printf("No such station.\n");
+            continue;
+        }
+        printf("111");
+        shortest_dijkstra(graph, from_station, to_station);
+    }**/
+}
