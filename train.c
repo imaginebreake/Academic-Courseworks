@@ -90,8 +90,8 @@ int list_prepend(StringList **start, char *val)
     return 1;
 }
 
-// Given a list, insert a new val after the n'th position of the list (zero-based).
-// If n < 0, insert at beginning.  If n >= length, insert at end.
+// Given a list, insert a new val after the n'th position of the list
+// (zero-based). If n < 0, insert at beginning.  If n >= length, insert at end.
 // Return true/false on success/failure.
 int list_insert(StringList **start, int n, char *val)
 {
@@ -113,7 +113,8 @@ int list_insert(StringList **start, int n, char *val)
             return 0;
         }
         el->value = val;
-        el->next = NULL; // we overwrite this later, setting NULL here is for safety in case we make a mistake and forget to set it later.
+        el->next = NULL; // we overwrite this later, setting NULL here is for safety
+                         // in case we make a mistake and forget to set it later.
 
         while (cur != NULL)
         {
@@ -241,12 +242,49 @@ int readline(char **line, FILE *fp)
     return 0;
 }
 
+int str2int(char *str)
+{
+    int res = 0;
+    for(int i = 0;i<strlen(str);i++){
+            res = res*10 + str[i] - '0';
+    }
+    return res;
+}
+
+int processCell(int coloum, int row, StringList **station_names, char *value,
+                char *from_station)
+{
+    StringList *station_names_tmp = *station_names;
+    int len = strlen(value);
+    if (len == 0)
+    {
+        return 0;
+    }
+    if (coloum == 1)
+    {
+        char *station_name = malloc(sizeof(char) * (len + 1));
+        if (station_name == NULL)
+        {
+            return -1;
+        }
+        strcpy(station_name, value);
+        list_append(station_names, station_name);
+        // graph_add_vertex(g, station_name);
+    }
+    else if (coloum >= 2 && row != 1)
+    {
+        char *to_station = list_get(station_names_tmp, row - 2);
+        int distance = str2int(value);
+        printf("From:%s To:%s Distance:%d\n", from_station, to_station, distance);
+    }
+    return 1;
+}
+
 int readFile(const char *filename)
 {
     FILE *fp;
     printf("%s", filename);
     StringList *station_names = NULL;
-    int station_number = 0;
     fp = fopen(filename, "r");
     if (fp == NULL)
     {
@@ -255,80 +293,52 @@ int readFile(const char *filename)
     }
     else
     {
-        int line_num = 1;
+        int coloum = 1;
         while (!feof(fp))
         {
             char *line;
             readline(&line, fp);
-            //printf("%s\n", line);
-            printf("\n%d\n", line_num);
-            if (line_num == 1)
-            // for the first line, add stations as vertex into graph
+            printf("\nColoum : %d\n", coloum);
+            int row = 1;
+            int pos = 0;
+            int temp_len = 0;
+            char *from_station = NULL;
+            int line_len = strlen(line);
+            for (int i = 0; i < line_len + 1; i++)
             {
-
-                int pos = 0;
-                int station_name_len = 0;
-                int line_len = strlen(line);
-                for (int i = 1; i < line_len + 1; i++)
+                char temp[temp_len + 1];
+                if (line[i] == ',' || i == line_len)
                 {
-                    if (line[i] == ',' || i == line_len)
+                    strncpy(temp, line + pos, temp_len);
+                    temp[temp_len] = '\0';
+                    if (row == 1 && coloum != 1)
                     {
-                        char *station_name = malloc(sizeof(char) * (station_name_len + 1));
-                        if (station_name = NULL)
-                        {
-                            return -1;
-                        }
-                        strncpy(station_name, line + pos + 1, station_name_len);
-                        station_name[station_name_len] = '\0';
-                        station_number++;
-                        list_append(&station_names, station_name);
-                        //graph_add_vertex(g, station_name);
-                        printf("%s %p %p\n", station_name, station_name, station_names);
-                        pos = i;
-                        station_name_len = 0;
+                        from_station = malloc(sizeof(char) * (temp_len + 1));
+                        printf("%p ", from_station);
+                        strcpy(from_station, temp);
+                        from_station[temp_len] = '\0';
+                        printf("%s\n", from_station);
                     }
-                    else
-                    {
-                        station_name_len++;
-                    }
+                    processCell(coloum, row, &station_names, temp, from_station);
+                    // printf("%s %p %d %d %d\n", temp, temp, row, temp_len, pos);
+                    pos = i + 1;
+                    temp_len = 0;
+                    row++;
+                }
+                else
+                {
+                    temp_len++;
                 }
             }
-            else             // for other lines, add edges
-            {
-                int pos = 1;
-                int line_len = strlen(line);
-                int load_station_name = 0;
-                for (int i = 0; i < line_len; i++)
-                {
-                    if (line[i] == ',' && load_station_name == 0)
-                    {
-                        char station_name[i + 1];
-                        strncpy(station_name, line, i);
-                        station_name[i] = '\0';
-                        printf("%s %p %p\n", station_name, station_name, station_names);
-                        break;
-                    }
-                    else if  (line[i] == ',' && load_station_name == 1)
-                    {
-                        
-                    }
-                }
-                while (pos < station_number)
-                {
-                    if (line[i] == ',')
-                }
-            }
-
-            //list_print(station_names);
+            // list_print(station_names);
             free(line);
-            line_num++;
+            free(from_station);
+            coloum++;
             list_print(station_names);
         }
         fclose(fp);
     }
+    return 1;
 }
 
-int main(int argc, char *argv[])
-{
-    readFile(argv[1]);
-}
+int main(int argc, char *argv[]) { readFile(argv[1]); }
