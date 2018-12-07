@@ -348,9 +348,7 @@ int processCell(int coloum, int row, StringList **station_names, char *value,
 int readFile(const char *filename, Graph *graph)
 {
     FILE *fp;
-    StringList *station_names = NULL;
     fp = fopen(filename, "r");
-
     if (fp == NULL)
     {
         perror("Cannot open file.");
@@ -358,6 +356,7 @@ int readFile(const char *filename, Graph *graph)
     }
 
     int coloum = 1;
+    StringList *station_names = NULL;
     while (!feof(fp))
     {
         if (coloum == 2)
