@@ -308,7 +308,7 @@ int processCell(int coloum, int row, StringList **station_names, char *value,
          row > list_length(station_names_tmp) + 1) &&
         coloum >= 2)
     {
-        printf("Invalid distances file.");
+        printf("Invalid distances file.\n");
         exit(EXIT_FILECOTENT_FAILURE);
     }
     int len = strlen(value);
@@ -338,7 +338,7 @@ int processCell(int coloum, int row, StringList **station_names, char *value,
         int distance = str2int(value);
         if (graph_add_edge(graph, from_station_tmp, to_station, distance) == -1)
         {
-            printf("Invalid distances file.");
+            printf("Invalid distances file.\n");
             exit(EXIT_FILECOTENT_FAILURE);
         };
     }
@@ -366,6 +366,10 @@ int readFile(const char *filename, Graph *graph)
         }
         char *line;
         readLine(&line, fp);
+        if (strlen(line)==0){
+            free(line);
+            continue;
+        }
         // printf("\nColoum : %d\n", coloum);
         int row = 1;
         int pos = 0;
@@ -379,8 +383,8 @@ int readFile(const char *filename, Graph *graph)
             {
                 strncpy(temp, line + pos, temp_len);
                 temp[temp_len] = '\0';
-                processCell(coloum, row, &station_names, temp, &from_station, graph);
                 //printf("%s %p %d %d %d\n", temp, temp, row, temp_len, pos);
+                processCell(coloum, row, &station_names, temp, &from_station, graph);
                 pos = i + 1;
                 temp_len = 0;
                 row++;
