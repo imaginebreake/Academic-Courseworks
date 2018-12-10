@@ -5,6 +5,7 @@ const int INF = 9999999;
 const int EXIT_FILEOPEN_FAILURE = 1;
 const int EXIT_FILECOTENT_FAILURE = 2;
 const int EXIT_MALLOC_FAILURE = 3;
+const int EXIT_OTHER_FAILURE = 4;
 //---------------------------------------//
 void memoryCheck(int i)
 {
@@ -70,8 +71,12 @@ typedef struct string_list
 
 void list_print(StringList *start)
 {
+    if (start == NULL)
+    {
+        printf("[]\n");
+        return;
+    }
     StringList *tmp = start;
-
     printf("[");
     while (tmp->next != NULL)
     {
@@ -83,6 +88,10 @@ void list_print(StringList *start)
 
 int list_append(StringList **start, char *val)
 {
+    if (val == NULL)
+    {
+        exit(EXIT_OTHER_FAILURE);
+    }
     if (*start == NULL)
     {
         StringList *tmp = malloc(sizeof(StringList));
@@ -121,6 +130,10 @@ void list_free(StringList **start)
 
 char *list_get(StringList *start, int index)
 {
+    if (start == NULL)
+    {
+        exit(EXIT_OTHER_FAILURE);
+    }
     StringList *tmp = start;
     if (index < 0)
     {
@@ -186,19 +199,35 @@ Graph *graph_create()
     return graph;
 }
 
-int graph_init(Graph *graph, int n, StringList *vertex_names)
+int graph_add_vertex(Graph *graph, char *vertex_name)
 {
-    if (graph == NULL || n <= 0 || vertex_names == NULL)
+    if (graph == NULL || vertex_name == NULL)
+    {
+        exit(EXIT_OTHER_FAILURE);
+    }
+    // vertex already in list
+    if (list_index(graph->vertex_names, vertex_name) != -1)
     {
         return 0;
     }
-    graph->vertex_names = vertex_names;
-    graph->edge_array = malloc(sizeof(int) * n * n);
-    memoryCheck(graph->edge_array == NULL);
-    for (int i = 0; i < n * n; i++)
+    int len_ori = list_length(graph->vertex_names);
+    int len_new = len_ori + 1;
+    int *edge_array_new = malloc(sizeof(int) * len_new * len_new);
+    memoryCheck(edge_array_new == NULL);
+    for (int i = 0; i < len_new * len_new; i++)
     {
-        graph->edge_array[i] = INF;
+        edge_array_new[i] = INF;
     }
+    for (int i = 0; i < len_ori; i++)
+    {
+        for (int j = 0; j < len_ori; j++)
+        {
+            edge_array_new[i * len_new + j] = graph->edge_array[i * len_ori + j];
+        }
+    }
+    list_append(&(graph->vertex_names), vertex_name);
+    free(graph->edge_array);
+    graph->edge_array = edge_array_new;
     return 1;
 }
 
@@ -300,12 +329,11 @@ int str2int(char *str)
     return res;
 }
 
-int processCell(int coloum, int row, StringList **station_names, char *value,
+int processCell(int coloum, int row, char *value,
                 char **from_station, Graph *graph)
 {
-    StringList *station_names_tmp = *station_names;
-    if ((coloum > list_length(station_names_tmp) + 1 ||
-         row > list_length(station_names_tmp) + 1) &&
+    if ((coloum > list_length(graph->vertex_names) + 1 ||
+         row > list_length(graph->vertex_names) + 1) &&
         coloum >= 2)
     {
         printf("Invalid distances file.\n");
@@ -318,11 +346,13 @@ int processCell(int coloum, int row, StringList **station_names, char *value,
     }
     if (coloum == 1)
     {
-        char *station_name = malloc(sizeof(char) * (len + 1));
-        memoryCheck(station_name == NULL);
-        strcpy(station_name, value);
-        list_append(station_names, station_name);
-        // graph_add_vertex(g, station_name);
+        char *station_name_tmp = malloc(sizeof(char) * (len + 1));
+        memoryCheck(station_name_tmp == NULL);
+        strcpy(station_name_tmp, value);
+        if (graph_add_vertex(graph, station_name_tmp) == 0){
+            printf("Station Duplicate.\n");
+            exit(EXIT_OTHER_FAILURE);
+        }
     }
     else if (coloum >= 2 && row == 1)
     {
@@ -334,7 +364,7 @@ int processCell(int coloum, int row, StringList **station_names, char *value,
     else if (coloum >= 2 && row != 1)
     {
         char *from_station_tmp = *from_station;
-        char *to_station = list_get(station_names_tmp, row - 2);
+        char *to_station = list_get(graph->vertex_names, row - 2);
         int distance = str2int(value);
         if (graph_add_edge(graph, from_station_tmp, to_station, distance) == -1)
         {
@@ -356,17 +386,14 @@ int readFile(const char *filename, Graph *graph)
     }
 
     int coloum = 1;
-    StringList *station_names = NULL;
     while (!feof(fp))
     {
-        if (coloum == 2)
-        {
-            graph_init(graph, list_length(station_names), station_names);
-        }
         char *line;
         readLine(&line, fp);
-        if (strlen(line)==0){
+        if (strlen(line) == 0)
+        {
             free(line);
+            // coloum is 1, but the file reach to the end
             continue;
         }
         // printf("\nColoum : %d\n", coloum);
@@ -383,7 +410,7 @@ int readFile(const char *filename, Graph *graph)
                 strncpy(temp, line + pos, temp_len);
                 temp[temp_len] = '\0';
                 //printf("%s %p %d %d %d\n", temp, temp, row, temp_len, pos);
-                processCell(coloum, row, &station_names, temp, &from_station, graph);
+                processCell(coloum, row, temp, &from_station, graph);
                 pos = i + 1;
                 temp_len = 0;
                 row++;
@@ -396,6 +423,12 @@ int readFile(const char *filename, Graph *graph)
         free(line);
         free(from_station);
         coloum++;
+    }
+    // coloum is 1 but file reach to the end
+    if (coloum == 1)
+    {
+        printf("Invalid distances file.\n");
+        exit(EXIT_FILECOTENT_FAILURE);
     }
     fclose(fp);
     return 1;
@@ -510,4 +543,5 @@ int main(int argc, char *argv[])
         shortest_dijkstra(graph, from_station, to_station);
     }
     graph_free(graph);
+
 }
