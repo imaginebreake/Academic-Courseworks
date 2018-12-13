@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-const int INF = 9999999;
-const int EXIT_FILEOPEN_FAILURE = 1;
-const int EXIT_FILECOTENT_FAILURE = 2;
-const int EXIT_MALLOC_FAILURE = 3;
-const int EXIT_OTHER_FAILURE = 4;
+const int INF = 9999999;                // the distance is not likely to be more than 9999999 KM
+const int EXIT_FILEOPEN_FAILURE = 1;    // Exit code for file open error
+const int EXIT_FILECOTENT_FAILURE = 2;  // Exit code for file content invalid
+const int EXIT_MALLOC_FAILURE = 3;      // Exit code for any memory allocation error
+const int EXIT_OTHER_FAILURE = 4;       // Exit code for other failure
+
 //---------------------------------------//
 void memoryCheck(int i)
 {
@@ -59,6 +60,7 @@ char *prompt(const char *mesg)
 
     return name;
 }
+
 //---------------------------------------//
 // StringList
 // This is used for graph
@@ -184,6 +186,7 @@ int list_length(StringList *start)
 
 //---------------------------------------//
 // Adjacency matrix graph
+
 typedef struct adj_matrix_graph
 {
     StringList *vertex_names;
@@ -283,41 +286,6 @@ void graph_free(Graph *graph)
 
 // read a singel line in file
 // modified from prompt function
-int readLine(char **line, FILE *fp)
-{
-    int size = 1;
-    char *tmp;
-    tmp = malloc(size * sizeof(char));
-    memoryCheck(tmp == NULL);
-    char ch;
-    int pos = 0;
-    do
-    {
-        if (feof(fp))
-        {
-            tmp[pos - 1] = '\0';
-            break;
-        }
-        fscanf(fp, "%c", &ch);
-        if (ch != '\n')
-        {
-            tmp[pos] = ch;
-            pos++;
-            if (pos >= size)
-            {
-                size = size * 2;
-                tmp = realloc(tmp, sizeof(char) * size);
-                if (tmp == NULL)
-                {
-                    return -1;
-                }
-            }
-        }
-    } while (ch != '\n');
-    tmp[pos] = '\0';
-    *line = tmp;
-    return 0;
-}
 
 int str2int(char *str)
 {
@@ -329,7 +297,7 @@ int str2int(char *str)
     return res;
 }
 
-int processCell(int coloum, int row, char *value,
+int process_cell(int coloum, int row, char *value,
                 char **from_station, Graph *graph)
 {
     if ((coloum > list_length(graph->vertex_names) + 1 ||
@@ -375,7 +343,7 @@ int processCell(int coloum, int row, char *value,
     return 1;
 }
 
-int readFile(const char *filename, Graph *graph)
+int read_file(const char *filename, Graph *graph)
 {
     FILE *fp;
     fp = fopen(filename, "r");
@@ -385,44 +353,56 @@ int readFile(const char *filename, Graph *graph)
         exit(EXIT_FILEOPEN_FAILURE);
     }
 
+    int pos = 0;
     int coloum = 1;
+    int size = 16;
+    int row = 1;
+    char *tmp = malloc(size * sizeof(char));
+    memoryCheck(tmp == NULL);
+    char *from_station = NULL;
+    char ch;
+
     while (!feof(fp))
     {
-        char *line;
-        readLine(&line, fp);
-        if (strlen(line) == 0)
+        fscanf(fp, "%c", &ch);
+        if (feof(fp))
         {
-            free(line);
-            // coloum is 1, but the file reach to the end
+            free(tmp);
+            free(from_station);
             continue;
         }
-        // printf("\nColoum : %d\n", coloum);
-        int row = 1;
-        int pos = 0;
-        int temp_len = 0;
-        char *from_station = NULL;
-        int line_len = strlen(line);
-        for (int i = 0; i < line_len + 1; i++)
+        if (ch == '\n' || ch == ',')
         {
-            char temp[temp_len + 1];
-            if (line[i] == ',' || i == line_len)
+            tmp[pos] = '\0';
+            //printf("%-12s %p %d %d %d\n", tmp, tmp, row, coloum, pos);
+            process_cell(coloum, row, tmp, &from_station, graph);
+            free(tmp);
+            size = 16;
+            pos = 0;
+            tmp = malloc(size * sizeof(char));
+            memoryCheck(tmp == NULL);
+            if (ch == '\n')
             {
-                strncpy(temp, line + pos, temp_len);
-                temp[temp_len] = '\0';
-                //printf("%s %p %d %d %d\n", temp, temp, row, temp_len, pos);
-                processCell(coloum, row, temp, &from_station, graph);
-                pos = i + 1;
-                temp_len = 0;
+                coloum++;
+                row = 1;
+            }
+            else if (ch == ',')
+            {
                 row++;
             }
-            else
+        }
+        else
+        {
+            tmp[pos] = ch;
+            pos++;
+            if (pos >= size)
             {
-                temp_len++;
+                size = size * 2;
+                void *realloc_tmp = realloc(tmp, sizeof(char) * size);
+                memoryCheck(realloc_tmp == NULL);
+                tmp = realloc_tmp;
             }
         }
-        free(line);
-        free(from_station);
-        coloum++;
     }
     // coloum is 1 but file reach to the end
     if (coloum == 1)
@@ -508,7 +488,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FILEOPEN_FAILURE);
     }
     Graph *graph = graph_create();
-    readFile(argv[1], graph);
+    read_file(argv[1], graph);
     //graph_print(graph);
     /**
     int len = list_length(graph->vertex_names);
