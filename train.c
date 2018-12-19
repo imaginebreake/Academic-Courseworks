@@ -300,13 +300,6 @@ int str2int(char *str)
 int process_cell(int coloum, int row, char *value,
                 char **from_station, Graph *graph)
 {
-    if ((coloum > list_length(graph->vertex_names) + 1 ||
-         row > list_length(graph->vertex_names) + 1) &&
-        coloum >= 2)
-    {
-        printf("Invalid distances file.\n");
-        exit(EXIT_FILECOTENT_FAILURE);
-    }
     int len = strlen(value);
     if (len == 0)
     {
@@ -328,6 +321,14 @@ int process_cell(int coloum, int row, char *value,
         memoryCheck(from_station_tmp == NULL);
         strcpy(from_station_tmp, value);
         *from_station = from_station_tmp;
+        if (list_index(graph->vertex_names, value) == -1)
+        {
+            char *add_new_station = malloc(sizeof(char) * (len + 1));
+            memoryCheck(add_new_station == NULL);
+            strcpy(add_new_station, value);
+            graph_add_vertex(graph, add_new_station);
+            
+        }
     }
     else if (coloum >= 2 && row != 1)
     {
@@ -367,14 +368,12 @@ int read_file(const char *filename, Graph *graph)
         fscanf(fp, "%c", &ch);
         if (feof(fp))
         {
-            free(tmp);
-            free(from_station);
-            continue;
+            ch = '\n';
         }
         if (ch == '\n' || ch == ',')
         {
             tmp[pos] = '\0';
-            //printf("%-12s %p %d %d %d\n", tmp, tmp, row, coloum, pos);
+            // printf("%-12s %p %d %d %d\n", tmp, tmp, row, coloum, pos);
             process_cell(coloum, row, tmp, &from_station, graph);
             free(tmp);
             size = 16;
@@ -404,6 +403,8 @@ int read_file(const char *filename, Graph *graph)
             }
         }
     }
+    free(tmp);
+    free(from_station);
     // coloum is 1 but file reach to the end
     if (coloum == 1)
     {
@@ -422,12 +423,12 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
     int d[len], path[len], visit[len];
     for (int i = 0; i < len; i++)
     {
-        d[i] = graph->edge_array[len * to_index + i];
-        path[i] = to_index;
+        d[i] = graph->edge_array[len * from_index + i];
+        path[i] = from_index;
         visit[i] = 0;
     }
-    visit[to_index] = 1;
-    d[to_index] = 0;
+    visit[from_index] = 1;
+    d[from_index] = 0;
     for (int i = 1; i < len; i++)
     {
         int min_num = -1;
@@ -451,7 +452,7 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
             }
         }
     }
-    if (d[from_index] >= INF)
+    if (d[to_index] >= INF)
     {
         printf("No possible journey.\n");
     }
@@ -459,22 +460,29 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
     {
         printf("No journey, same start and end station.\n");
     }
-    else if (path[from_index] == to_index)
+    else if (path[to_index] == from_index)
     {
         printf("From %s\ndirect\nTo %s\n", from_station, to_station);
-        printf("Distance %d km\n", d[from_index]);
+        printf("Distance %d km\n", d[to_index]);
     }
     else
     {
         printf("From %s\nvia\n", from_station);
-        int i = path[from_index];
-        while (i != to_index)
+        int i = path[to_index];
+        int arr[len];
+        int j = 0;
+        while (i != from_index)
         {
-            printf("%s\n", list_get(graph->vertex_names, i));
+            arr[j] = i;
+            j++;
             i = path[i];
         }
+        for (int i = j-1; i>-1;i--)
+        {
+            printf("%s\n", list_get(graph->vertex_names, arr[i]));
+        }
         printf("To %s\n", to_station);
-        printf("Distance %d km\n", d[from_index]);
+        printf("Distance %d km\n", d[to_index]);
     }
     return 0;
 }
@@ -489,7 +497,7 @@ int main(int argc, char *argv[])
     }
     Graph *graph = graph_create();
     read_file(argv[1], graph);
-    //graph_print(graph);
+    graph_print(graph);
     /**
     int len = list_length(graph->vertex_names);
     //test
