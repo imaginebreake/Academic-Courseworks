@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-const int INF = 9999999;                // the distance is not likely to be more than 9999999 KM
-const int EXIT_FILEOPEN_FAILURE = 1;    // Exit code for file open error
-const int EXIT_FILECOTENT_FAILURE = 2;  // Exit code for file content invalid
-const int EXIT_MALLOC_FAILURE = 3;      // Exit code for any memory allocation error
-const int EXIT_OTHER_FAILURE = 4;       // Exit code for other failure
+const int INF = 9999999;               // the distance is not likely to be more than 9999999 KM
+const int EXIT_FILEOPEN_FAILURE = 1;   // Exit code for file open error
+const int EXIT_FILECOTENT_FAILURE = 2; // Exit code for file content invalid
+const int EXIT_MALLOC_FAILURE = 3;     // Exit code for any memory allocation error
+const int EXIT_OTHER_FAILURE = 4;      // Exit code for other failure
 
 //---------------------------------------//
 void memoryCheck(int i)
@@ -17,7 +17,7 @@ void memoryCheck(int i)
     }
 }
 
-// prompt from moodle
+// prompt from Lecture
 char *prompt(const char *mesg)
 {
     char *name;
@@ -63,6 +63,7 @@ char *prompt(const char *mesg)
 
 //---------------------------------------//
 // StringList
+// modified from Int_list
 // This is used for graph
 
 typedef struct string_list
@@ -292,13 +293,28 @@ int str2int(char *str)
     int res = 0;
     for (int i = 0; i < strlen(str); i++)
     {
+        if (str[i] < 48 || str[i] > 57)
+        {
+            return -1;
+        }
         res = res * 10 + str[i] - '0';
     }
     return res;
 }
 
+int cal_cost(int distance, int sta_num)
+{
+    float cost_float = distance * 1.2 + sta_num * 25;
+    int cost_final = cost_float;
+    if (cost_float != (float)cost_final)
+    {
+        cost_final++;
+    }
+    return cost_final;
+}
+
 int process_cell(int coloum, int row, char *value,
-                char **from_station, Graph *graph)
+                 char **from_station, Graph *graph)
 {
     int len = strlen(value);
     if (len == 0)
@@ -310,7 +326,8 @@ int process_cell(int coloum, int row, char *value,
         char *station_name_tmp = malloc(sizeof(char) * (len + 1));
         memoryCheck(station_name_tmp == NULL);
         strcpy(station_name_tmp, value);
-        if (graph_add_vertex(graph, station_name_tmp) == 0){
+        if (graph_add_vertex(graph, station_name_tmp) == 0)
+        {
             printf("Station Duplicate.\n");
             exit(EXIT_OTHER_FAILURE);
         }
@@ -327,19 +344,23 @@ int process_cell(int coloum, int row, char *value,
             memoryCheck(add_new_station == NULL);
             strcpy(add_new_station, value);
             graph_add_vertex(graph, add_new_station);
-            
         }
     }
     else if (coloum >= 2 && row != 1)
     {
         char *from_station_tmp = *from_station;
         char *to_station = list_get(graph->vertex_names, row - 2);
-        int distance = str2int(value);
+        int distance = -1;
+        if ((distance = str2int(value)) == -1)
+        {
+            printf("Invalid distances file.\n");
+            exit(EXIT_FILECOTENT_FAILURE);
+        }
         if (graph_add_edge(graph, from_station_tmp, to_station, distance) == -1)
         {
             printf("Invalid distances file.\n");
             exit(EXIT_FILECOTENT_FAILURE);
-        };
+        }
     }
     return 1;
 }
@@ -373,14 +394,14 @@ int read_file(const char *filename, Graph *graph)
         if (ch == '\n' || ch == ',')
         {
             tmp[pos] = '\0';
-            // printf("%-12s %p %d %d %d\n", tmp, tmp, row, coloum, pos);
+            //printf("%-12s %p\t%d\t%d\t%d\n", tmp, tmp, coloum, row, pos);
             process_cell(coloum, row, tmp, &from_station, graph);
             free(tmp);
             size = 16;
             pos = 0;
             tmp = malloc(size * sizeof(char));
             memoryCheck(tmp == NULL);
-            if (ch == '\n')
+            if (ch == '\n' && row != 1)
             {
                 coloum++;
                 row = 1;
@@ -419,7 +440,7 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
 {
     int from_index = list_index(graph->vertex_names, from_station);
     int to_index = list_index(graph->vertex_names, to_station);
-    int len = list_length(graph->vertex_names);
+    const int len = list_length(graph->vertex_names);
     int d[len], path[len], visit[len];
     for (int i = 0; i < len; i++)
     {
@@ -455,15 +476,18 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
     if (d[to_index] >= INF)
     {
         printf("No possible journey.\n");
+        return 1;
     }
     else if (from_index == to_index)
     {
         printf("No journey, same start and end station.\n");
+        return 1;
     }
     else if (path[to_index] == from_index)
     {
         printf("From %s\ndirect\nTo %s\n", from_station, to_station);
         printf("Distance %d km\n", d[to_index]);
+        printf("Cost %d RMB", cal_cost(d[to_index], 0));
     }
     else
     {
@@ -477,12 +501,13 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
             j++;
             i = path[i];
         }
-        for (int i = j-1; i>-1;i--)
+        for (int i = j - 1; i > -1; i--)
         {
             printf("%s\n", list_get(graph->vertex_names, arr[i]));
         }
         printf("To %s\n", to_station);
         printf("Distance %d km\n", d[to_index]);
+        printf("Cost %d RMB\n", cal_cost(d[to_index], j));
     }
     return 0;
 }
@@ -497,7 +522,7 @@ int main(int argc, char *argv[])
     }
     Graph *graph = graph_create();
     read_file(argv[1], graph);
-    graph_print(graph);
+    //graph_print(graph);
     /**
     int len = list_length(graph->vertex_names);
     //test
@@ -510,7 +535,7 @@ int main(int argc, char *argv[])
         }
     }
     **/
-    while (1)
+    for (;;)
     {
         char *from_station = prompt("Start station: ");
         if (from_station == NULL || strlen(from_station) == 0)
@@ -531,5 +556,4 @@ int main(int argc, char *argv[])
         shortest_dijkstra(graph, from_station, to_station);
     }
     graph_free(graph);
-
 }
