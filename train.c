@@ -487,7 +487,7 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
     {
         printf("From %s\ndirect\nTo %s\n", from_station, to_station);
         printf("Distance %d km\n", d[to_index]);
-        printf("Cost %d RMB", cal_cost(d[to_index], 0));
+        printf("Cost %d RMB\n", cal_cost(d[to_index], 0));
     }
     else
     {
@@ -523,18 +523,6 @@ int main(int argc, char *argv[])
     Graph *graph = graph_create();
     read_file(argv[1], graph);
     //graph_print(graph);
-    /**
-    int len = list_length(graph->vertex_names);
-    //test
-    for (int i = 0; i < len; i++)
-    {
-        for (int j = 0; j < len; j++)
-        {
-            shortest_dijkstra(graph, list_get(graph->vertex_names, i),
-                              list_get(graph->vertex_names, j));
-        }
-    }
-    **/
     for (;;)
     {
         char *from_station = prompt("Start station: ");
