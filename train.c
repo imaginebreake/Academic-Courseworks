@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const int INF =9999999;                // the distance is not likely to be more than 9999999 KM
+const int INF = 9999999;               // the distance is not likely to be more than 9999999 KM
 const int EXIT_FILEOPEN_FAILURE = 1;   // Exit code for file open error
 const int EXIT_FILECOTENT_FAILURE = 2; // Exit code for file content invalid
 const int EXIT_MALLOC_FAILURE = 3;     // Exit code for any memory allocation error
