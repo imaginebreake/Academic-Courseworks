@@ -430,6 +430,7 @@ int read_file(const char *filename, Graph *graph)
                 graph_free(graph);
                 exit(process_code);
             }
+            
             // while char reach to '\n' and row is not still one, change line
             if (ch == '\n')
             {
@@ -450,7 +451,6 @@ int read_file(const char *filename, Graph *graph)
                     row = 1;
                 }
             }
-
             else if (ch == ',')
             {
                 row++;
@@ -479,7 +479,7 @@ int read_file(const char *filename, Graph *graph)
     free(tmp);
     fclose(fp);
     // fake-blank-line exists || true-blank-line not at end of file
-    if (blank_line != coloum)
+    if (blank_line != coloum && blank_line != 0)
     {
         printf("Invalid distances file.\n");
         graph_free(graph);
