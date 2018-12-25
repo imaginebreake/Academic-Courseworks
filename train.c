@@ -8,6 +8,7 @@ const int EXIT_MALLOC_FAILURE = 3;     // Exit code for any memory allocation er
 const int EXIT_OTHER_FAILURE = 4;      // Exit code for other failure
 
 //---------------------------------------//
+// check whether memory is allocated correctly
 void memoryCheck(int i)
 {
     if (i)
@@ -72,6 +73,7 @@ typedef struct string_list
     struct string_list *next;
 } StringList;
 
+// print the list
 void list_print(StringList *start)
 {
     if (start == NULL)
@@ -88,7 +90,7 @@ void list_print(StringList *start)
     }
     printf("%s]\n", tmp->value);
 }
-
+// add one string to the end of list
 int list_append(StringList **start, char *val)
 {
     if (val == NULL)
@@ -119,6 +121,7 @@ int list_append(StringList **start, char *val)
     return 1;
 }
 
+// destroy the list
 void list_free(StringList **start)
 {
     StringList *tmp = *start;
@@ -131,6 +134,7 @@ void list_free(StringList **start)
     *start = NULL;
 }
 
+// get the value of string on index
 char *list_get(StringList *start, int index)
 {
     if (start == NULL)
@@ -157,6 +161,7 @@ char *list_get(StringList *start, int index)
     return NULL;
 }
 
+// get the index of one string in list
 int list_index(StringList *start, char *val)
 {
     int i = 0;
@@ -173,6 +178,7 @@ int list_index(StringList *start, char *val)
     return -1;
 }
 
+// return the length of list
 int list_length(StringList *start)
 {
     int len = 0;
@@ -194,6 +200,7 @@ typedef struct adj_matrix_graph
     int *edge_array;
 } Graph;
 
+// initialize a graph
 Graph *graph_create()
 {
     Graph *graph = malloc(sizeof(Graph));
@@ -203,6 +210,7 @@ Graph *graph_create()
     return graph;
 }
 
+// add one vertex to graph
 int graph_add_vertex(Graph *graph, char *vertex_name)
 {
     if (graph == NULL || vertex_name == NULL)
@@ -222,6 +230,7 @@ int graph_add_vertex(Graph *graph, char *vertex_name)
     {
         edge_array_new[i] = INF;
     }
+    // transfer values in old array to new array
     for (int i = 0; i < len_ori; i++)
     {
         for (int j = 0; j < len_ori; j++)
@@ -235,6 +244,7 @@ int graph_add_vertex(Graph *graph, char *vertex_name)
     return 1;
 }
 
+// add one edge from one vertex to another vertex
 int graph_add_edge(Graph *graph, char *from_vertex, char *to_vertex,
                    int value)
 {
@@ -253,8 +263,13 @@ int graph_add_edge(Graph *graph, char *from_vertex, char *to_vertex,
     return 1;
 }
 
+// print the graph
 void graph_print(Graph *graph)
 {
+    if (graph == NULL)
+    {
+        return;
+    }
     list_print(graph->vertex_names);
     int len = list_length(graph->vertex_names);
     for (int i = 0; i < len; i++)
@@ -268,6 +283,7 @@ void graph_print(Graph *graph)
     }
 }
 
+// destroy the graph
 void graph_free(Graph *graph)
 {
     if (graph == NULL)
@@ -282,14 +298,17 @@ void graph_free(Graph *graph)
     }
     free(graph);
 }
+
 //---------------------------------------//
 // Function for process file input
 
-// read a singel line in file
-// modified from prompt function
-
+// transform a string to int (only interger biggher or eqaul to 0)
 int str2int(char *str)
 {
+    if (str == NULL)
+    {
+        return -1;
+    }
     int res = 0;
     for (int i = 0; i < strlen(str); i++)
     {
@@ -302,10 +321,12 @@ int str2int(char *str)
     return res;
 }
 
+// calculate the cost of trip
 int cal_cost(int distance, int sta_num)
 {
     float cost_float = distance * 1.2 + sta_num * 25;
     int cost_final = cost_float;
+    // floor to ceil
     if (cost_float != (float)cost_final)
     {
         cost_final++;
@@ -313,16 +334,21 @@ int cal_cost(int distance, int sta_num)
     return cost_final;
 }
 
+// process the cell
+// receive value&coloum&row of one cell and do sth
 int process_cell(int coloum, int row, char *value,
                  char **from_station, Graph *graph)
 {
     int len = strlen(value);
+    // empty string
     if (len == 0)
     {
         return 0;
     }
+    // coloum 1 : read station names
     if (coloum == 1)
     {
+        // create new memory for store in graph
         char *station_name_tmp = malloc(sizeof(char) * (len + 1));
         memoryCheck(station_name_tmp == NULL);
         strcpy(station_name_tmp, value);
@@ -332,14 +358,17 @@ int process_cell(int coloum, int row, char *value,
             exit(EXIT_OTHER_FAILURE);
         }
     }
+    // coloum 2+ : load the first cell as from_station and following cells are edges
     else if (coloum >= 2 && row == 1)
     {
+        // create new memory for from_station
         char *from_station_tmp = malloc(sizeof(char) * (len + 1));
         memoryCheck(from_station_tmp == NULL);
         strcpy(from_station_tmp, value);
         *from_station = from_station_tmp;
-        if (list_index(graph->vertex_names, value) == -1)
+        if (list_index(graph->vertex_names, value) == -1)           // there are stations which not shown in coloum 1
         {
+            // create new memory for store in graph
             char *add_new_station = malloc(sizeof(char) * (len + 1));
             memoryCheck(add_new_station == NULL);
             strcpy(add_new_station, value);
@@ -365,6 +394,7 @@ int process_cell(int coloum, int row, char *value,
     return 1;
 }
 
+// read file and get cells
 int read_file(const char *filename, Graph *graph)
 {
     FILE *fp;
@@ -387,6 +417,7 @@ int read_file(const char *filename, Graph *graph)
     while (!feof(fp))
     {
         fscanf(fp, "%c", &ch);
+        // when feof(fp), the last char is read twice, change it to '\n'
         if (feof(fp))
         {
             ch = '\n';
@@ -394,13 +425,15 @@ int read_file(const char *filename, Graph *graph)
         if (ch == '\n' || ch == ',')
         {
             tmp[pos] = '\0';
-            //printf("%-12s %p\t%d\t%d\t%d\n", tmp, tmp, coloum, row, pos);
+            // printf("%-12s %p\t%d\t%d\t%d\n", tmp, tmp, coloum, row, pos);
+            // process the cell
             process_cell(coloum, row, tmp, &from_station, graph);
             free(tmp);
             size = 16;
             pos = 0;
             tmp = malloc(size * sizeof(char));
             memoryCheck(tmp == NULL);
+            // while char reach to '\n' and row is not still one, change line
             if (ch == '\n' && row != 1)
             {
                 coloum++;
@@ -415,10 +448,11 @@ int read_file(const char *filename, Graph *graph)
         {
             tmp[pos] = ch;
             pos++;
+            // alloc more memory
             if (pos >= size)
             {
                 size = size * 2;
-                void *realloc_tmp = realloc(tmp, sizeof(char) * size);
+                char *realloc_tmp = realloc(tmp, sizeof(char) * size);
                 memoryCheck(realloc_tmp == NULL);
                 tmp = realloc_tmp;
             }
@@ -442,18 +476,21 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
     int to_index = list_index(graph->vertex_names, to_station);
     const int len = list_length(graph->vertex_names);
     int d[len], path[len], visit[len];
+    
     for (int i = 0; i < len; i++)
     {
-        d[i] = graph->edge_array[len * from_index + i];
-        path[i] = from_index;
-        visit[i] = 0;
+        d[i] = graph->edge_array[len * from_index + i];         // distance form from_index to other stations
+        path[i] = from_index;                                   // store the path (previous station)
+        visit[i] = 0;                                           // whether this station is visited
     }
+    
     visit[from_index] = 1;
     d[from_index] = 0;
     for (int i = 1; i < len; i++)
     {
         int min_num = -1;
         int min = INF;
+        // get the shortest station to from_station (not visited before)
         for (int j = 0; j < len; j++)
         {
             if (visit[j] == 0 && d[j] <= min)
@@ -463,6 +500,7 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
             }
         }
         visit[min_num] = 1;
+        // check if there is a shorter way
         for (int j = 0; j < len; j++)
         {
             // printf("%d %d %d\n",min_num,min,graph->edge_array[len * min_num + j]);
@@ -473,6 +511,7 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
             }
         }
     }
+    
     if (d[to_index] >= INF)
     {
         printf("No possible journey.\n");
