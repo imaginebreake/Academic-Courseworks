@@ -430,26 +430,37 @@ int read_file(const char *filename, Graph *graph)
                 graph_free(graph);
                 exit(process_code);
             }
+            // while char reach to '\n' and row is not still one, change line
+            if (ch == '\n')
+            {
+                // there are two types of blank line
+                // true blank line "\n" -> ok for end of file
+                // fake blank line (line with one cell) "xxxx\n" -> invalid for all lines
+                // no blank_line record but find a blank_line
+                // therefore, once meet blank_line we record the line number (coloum), but for
+                // fake-blank-line we let the coloum++
+                if (row == 1 && blank_line== 0)
+                {
+                    // printf("%-12s %p\t%d\t%d\t%d\n", tmp, tmp, coloum, row, pos);
+                    blank_line = coloum;
+                }
+                if ((row != 1) || ((row == 1) && (strlen(tmp)>0)))
+                {
+                    coloum++;
+                    row = 1;
+                }
+            }
+
+            else if (ch == ',')
+            {
+                row++;
+            }
+
             free(tmp);
             size = 16;
             pos = 0;
             tmp = malloc(size * sizeof(char));
             memoryCheck(tmp == NULL);
-            // while char reach to '\n' and row is not still one, change line
-            if (ch == '\n' && row != 1)
-            {
-                coloum++;
-                row = 1;
-            }
-            // no blank_line record but find a blank_line
-            else if (ch == '\n' && row == 1 && blank_line== 0)
-            {
-                blank_line = coloum;
-            }
-            else if (ch == ',')
-            {
-                row++;
-            }
         }
         else
         {
@@ -467,8 +478,8 @@ int read_file(const char *filename, Graph *graph)
     }
     free(tmp);
     fclose(fp);
-    // blank line not at the end of file && no line till the end of file
-    if (blank_line != coloum || coloum == 1)
+    // fake-blank-line exists || true-blank-line not at end of file
+    if (blank_line != coloum)
     {
         printf("Invalid distances file.\n");
         graph_free(graph);
