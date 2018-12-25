@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-const int INF = 9999999;               // the distance is not likely to be more than 9999999 KM
+
+const int INF =9999999;                // the distance is not likely to be more than 9999999 KM
 const int EXIT_FILEOPEN_FAILURE = 1;   // Exit code for file open error
 const int EXIT_FILECOTENT_FAILURE = 2; // Exit code for file content invalid
 const int EXIT_MALLOC_FAILURE = 3;     // Exit code for any memory allocation error
@@ -40,18 +41,9 @@ char *prompt(const char *mesg)
             if (pos > size - 1)
             {
                 // expand
-                char *tmp = malloc(sizeof(char) * (size * 2));
-                if (tmp == NULL)
-                {
-                    free(name); // free the current buffer before giving up.
-                    return NULL;
-                }
-                for (int i = 0; i < size; i++)
-                {
-                    tmp[i] = name[i];
-                }
-                free(name);
-                name = tmp;
+                char *realloc_tmp = realloc(name, sizeof(char) * (size * 2));
+                memoryCheck(realloc_tmp == NULL);
+                name = realloc_tmp;
                 size = size * 2;
             }
         }
@@ -128,6 +120,7 @@ void list_free(StringList **start)
     while (tmp != NULL)
     {
         StringList *next = tmp->next;
+        free(tmp->value);
         free(tmp);
         tmp = next;
     }
@@ -336,8 +329,8 @@ int cal_cost(int distance, int sta_num)
 
 // process the cell
 // receive value&coloum&row of one cell and do sth
-int process_cell(int coloum, int row, char *value,
-                 char **from_station, Graph *graph)
+int process_cell(int coloum, int row, char *value, int *from_station_index,
+                 Graph *graph)
 {
     int len = strlen(value);
     // empty string
@@ -355,18 +348,16 @@ int process_cell(int coloum, int row, char *value,
         if (graph_add_vertex(graph, station_name_tmp) == 0)
         {
             printf("Station Duplicate.\n");
-            exit(EXIT_OTHER_FAILURE);
+            free(station_name_tmp);
+            return EXIT_OTHER_FAILURE;
         }
     }
-    // coloum 2+ : load the first cell as from_station and following cells are edges
+    // coloum 2+ : load the first cell as from_station and following cells are
+    // edges
     else if (coloum >= 2 && row == 1)
     {
-        // create new memory for from_station
-        char *from_station_tmp = malloc(sizeof(char) * (len + 1));
-        memoryCheck(from_station_tmp == NULL);
-        strcpy(from_station_tmp, value);
-        *from_station = from_station_tmp;
-        if (list_index(graph->vertex_names, value) == -1)           // there are stations which not shown in coloum 1
+        if (list_index(graph->vertex_names, value) ==
+            -1) // there are stations which not shown in coloum 1
         {
             // create new memory for store in graph
             char *add_new_station = malloc(sizeof(char) * (len + 1));
@@ -374,24 +365,25 @@ int process_cell(int coloum, int row, char *value,
             strcpy(add_new_station, value);
             graph_add_vertex(graph, add_new_station);
         }
+        *from_station_index = list_index(graph->vertex_names, value);
     }
     else if (coloum >= 2 && row != 1)
     {
-        char *from_station_tmp = *from_station;
+        char *from_station = list_get(graph->vertex_names, *from_station_index);
         char *to_station = list_get(graph->vertex_names, row - 2);
         int distance = -1;
         if ((distance = str2int(value)) == -1)
         {
             printf("Invalid distances file.\n");
-            exit(EXIT_FILECOTENT_FAILURE);
+            return EXIT_FILECOTENT_FAILURE;
         }
-        if (graph_add_edge(graph, from_station_tmp, to_station, distance) == -1)
+        if (graph_add_edge(graph, from_station, to_station, distance) == -1)
         {
             printf("Invalid distances file.\n");
-            exit(EXIT_FILECOTENT_FAILURE);
+            return EXIT_FILECOTENT_FAILURE;
         }
     }
-    return 1;
+    return 0;
 }
 
 // read file and get cells
@@ -402,6 +394,7 @@ int read_file(const char *filename, Graph *graph)
     if (fp == NULL)
     {
         perror("Cannot open file.");
+        graph_free(graph);
         exit(EXIT_FILEOPEN_FAILURE);
     }
 
@@ -411,7 +404,7 @@ int read_file(const char *filename, Graph *graph)
     int row = 1;
     char *tmp = malloc(size * sizeof(char));
     memoryCheck(tmp == NULL);
-    char *from_station = NULL;
+    int from_station_index = -1;
     char ch;
 
     while (!feof(fp))
@@ -427,7 +420,15 @@ int read_file(const char *filename, Graph *graph)
             tmp[pos] = '\0';
             // printf("%-12s %p\t%d\t%d\t%d\n", tmp, tmp, coloum, row, pos);
             // process the cell
-            process_cell(coloum, row, tmp, &from_station, graph);
+            int process_code =
+                process_cell(coloum, row, tmp, &from_station_index, graph);
+            if (process_code != 0)
+            {
+                fclose(fp);
+                free(tmp);
+                graph_free(graph);
+                exit(process_code);
+            }
             free(tmp);
             size = 16;
             pos = 0;
@@ -459,14 +460,14 @@ int read_file(const char *filename, Graph *graph)
         }
     }
     free(tmp);
-    free(from_station);
+    fclose(fp);
     // coloum is 1 but file reach to the end
     if (coloum == 1)
     {
         printf("Invalid distances file.\n");
+        graph_free(graph);
         exit(EXIT_FILECOTENT_FAILURE);
     }
-    fclose(fp);
     return 1;
 }
 
@@ -476,14 +477,15 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
     int to_index = list_index(graph->vertex_names, to_station);
     const int len = list_length(graph->vertex_names);
     int d[len], path[len], visit[len];
-    
+
     for (int i = 0; i < len; i++)
     {
-        d[i] = graph->edge_array[len * from_index + i];         // distance form from_index to other stations
-        path[i] = from_index;                                   // store the path (previous station)
-        visit[i] = 0;                                           // whether this station is visited
+        // distance from_index to other stations
+        d[i] = graph->edge_array[len * from_index + i];
+        path[i] = from_index;        // store the path (previous station)
+        visit[i] = 0;                // whether this station is visited
     }
-    
+
     visit[from_index] = 1;
     d[from_index] = 0;
     for (int i = 1; i < len; i++)
@@ -511,7 +513,7 @@ int shortest_dijkstra(Graph *graph, char *from_station, char *to_station)
             }
         }
     }
-    
+
     if (d[to_index] >= INF)
     {
         printf("No possible journey.\n");
@@ -557,24 +559,37 @@ int main(int argc, char *argv[])
     if (argc != 2)
     {
         printf("Invalid command line arguments. Usage: train <disances.txt>");
-        exit(EXIT_FILEOPEN_FAILURE);
+        exit(EXIT_OTHER_FAILURE);
     }
     Graph *graph = graph_create();
     read_file(argv[1], graph);
-    //graph_print(graph);
+    // graph_print(graph);
+    char *from_station = NULL;
+    char *to_station = NULL;
     for (;;)
     {
-        char *from_station = prompt("Start station: ");
+        if (from_station != NULL)
+        {
+            free(from_station);
+            from_station = NULL;
+        }
+        if (to_station != NULL)
+        {
+            free(to_station);
+            to_station = NULL;
+        }
+        from_station = prompt("Start station: ");
         if (from_station == NULL || strlen(from_station) == 0)
         {
-            exit(EXIT_SUCCESS);
+            free(from_station);
+            break;
         }
         else if (list_index(graph->vertex_names, from_station) < 0)
         {
             printf("No such station.\n");
             continue;
         }
-        char *to_station = prompt("End station: ");
+        to_station = prompt("End station: ");
         if (list_index(graph->vertex_names, to_station) < 0)
         {
             printf("No such station.\n");
@@ -583,4 +598,5 @@ int main(int argc, char *argv[])
         shortest_dijkstra(graph, from_station, to_station);
     }
     graph_free(graph);
+    exit(EXIT_SUCCESS);
 }
