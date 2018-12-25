@@ -243,7 +243,7 @@ int graph_add_edge(Graph *graph, char *from_vertex, char *to_vertex,
 {
     if (graph == NULL || from_vertex == NULL || to_vertex == NULL)
     {
-        return 0;
+        return -1;
     }
     int from_index = list_index(graph->vertex_names, from_vertex);
     int to_index = list_index(graph->vertex_names, to_vertex);
@@ -253,7 +253,7 @@ int graph_add_edge(Graph *graph, char *from_vertex, char *to_vertex,
         return -1;
     }
     graph->edge_array[len * from_index + to_index] = value;
-    return 1;
+    return 0;
 }
 
 // print the graph
@@ -580,7 +580,7 @@ int main(int argc, char *argv[])
     }
     Graph *graph = graph_create();
     read_file(argv[1], graph);
-    // graph_print(graph);
+    //graph_print(graph);
     char *from_station = NULL;
     char *to_station = NULL;
     for (;;)
