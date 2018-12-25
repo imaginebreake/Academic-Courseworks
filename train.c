@@ -347,7 +347,7 @@ int process_cell(int coloum, int row, char *value, int *from_station_index,
         strcpy(station_name_tmp, value);
         if (graph_add_vertex(graph, station_name_tmp) == 0)
         {
-            printf("Station Duplicate.\n");
+            printf("Invalid distances file.(Station Duplicate)\n");
             free(station_name_tmp);
             return EXIT_OTHER_FAILURE;
         }
@@ -398,6 +398,7 @@ int read_file(const char *filename, Graph *graph)
         exit(EXIT_FILEOPEN_FAILURE);
     }
 
+    int blank_line = 0;
     int pos = 0;
     int coloum = 1;
     int size = 16;
@@ -440,6 +441,11 @@ int read_file(const char *filename, Graph *graph)
                 coloum++;
                 row = 1;
             }
+            // no blank_line record but find a blank_line
+            else if (ch == '\n' && row == 1 && blank_line== 0)
+            {
+                blank_line = coloum;
+            }
             else if (ch == ',')
             {
                 row++;
@@ -461,8 +467,8 @@ int read_file(const char *filename, Graph *graph)
     }
     free(tmp);
     fclose(fp);
-    // coloum is 1 but file reach to the end
-    if (coloum == 1)
+    // blank line not at the end of file && no line till the end of file
+    if (blank_line != coloum || coloum == 1)
     {
         printf("Invalid distances file.\n");
         graph_free(graph);
