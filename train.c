@@ -198,7 +198,7 @@ int list_length(StringList *start)
 //
 // I am afraid that my code will be regarded as plagiarism
 // The good news is I used private repositories for this coursework
-// from the commits you will clearly see that I made get this done step by step
+// from the commits you will clearly see that I get this done step by step
 // so if you are thinking me of plagiarism, please contact me and I will show you the commits
 
 typedef struct adj_matrix
