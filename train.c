@@ -190,16 +190,8 @@ int list_length(StringList *start)
 //---------------------------------------//
 // Adjacency matrix graph
 //
-// Here is the thing going...I wrote a adj_martix by myself
-// Then during my revision of PGA, I went for the Module last year
-// and do exercises on Last-year in-lab assessments
-// I found out that my adj_matrix is similar to this one
+// Modified from adj_matrix_graph_incomplete.c
 // https://moodle.nottingham.ac.uk/mod/resource/view.php?id=2896552
-//
-// I am afraid that my code will be regarded as plagiarism
-// The good news is I used private repositories for this coursework
-// from the commits you will clearly see that I get this done step by step
-// so if you are thinking me of plagiarism, please contact me and I will show you the commits
 
 typedef struct adj_matrix
 {
