@@ -1,3 +1,4 @@
+// 20028309 scytg1 GAO TIANYI 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,7 +57,8 @@ char *prompt(const char *mesg)
 
 //---------------------------------------//
 // StringList
-// modified from Int_list
+// modified from Int_list on Moodle
+// https://moodle.nottingham.ac.uk/mod/resource/view.php?id=2886863
 // This is used for graph
 
 typedef struct string_list
@@ -82,6 +84,7 @@ void list_print(StringList *start)
     }
     printf("%s]\n", tmp->value);
 }
+
 // add one string to the end of list
 int list_append(StringList **start, char *val)
 {
@@ -158,14 +161,14 @@ char *list_get(StringList *start, int index)
 int list_index(StringList *start, char *val)
 {
     int i = 0;
-    StringList *cur = start;
-    while (cur != NULL)
+    StringList *tmp = start;
+    while (tmp != NULL)
     {
-        if (strcmp(cur->value, val) == 0)
+        if (strcmp(tmp->value, val) == 0)
         {
             return i;
         }
-        cur = cur->next;
+        tmp = tmp->next;
         i++;
     }
     return -1;
@@ -175,19 +178,30 @@ int list_index(StringList *start, char *val)
 int list_length(StringList *start)
 {
     int len = 0;
-    StringList *cur = start;
-    while (cur != NULL)
+    StringList *tmp = start;
+    while (tmp != NULL)
     {
         len++;
-        cur = cur->next;
+        tmp = tmp->next;
     }
     return len;
 }
 
 //---------------------------------------//
 // Adjacency matrix graph
+//
+// Here is the thing going...I wrote a adj_martix by myself
+// Then during my revision of PGA, I went for the Module last year
+// and do exercises on Last-year in-lab assessments
+// I found out that my adj_matrix is similar to this one
+// https://moodle.nottingham.ac.uk/mod/resource/view.php?id=2896552
+//
+// I am afraid that my code will be regarded as plagiarism
+// The good news is I used private repositories for this coursework
+// from the commits you will clearly see that I made get this done step by step
+// so if you are thinking me of plagiarism, please contact me and I will show you the commits
 
-typedef struct adj_matrix_graph
+typedef struct adj_matrix
 {
     StringList *vertex_names;
     int *edge_array;
@@ -341,6 +355,11 @@ int process_cell(int coloum, int row, char *value, int *from_station_index,
     // coloum 1 : read station names
     if (coloum == 1)
     {
+        if (row == 1)
+        {
+            printf("Invalid distances file.\n");
+            return EXIT_FILECOTENT_FAILURE;
+        }
         // create new memory for store in graph
         char *station_name_tmp = malloc(sizeof(char) * (len + 1));
         memoryCheck(station_name_tmp == NULL);
@@ -349,7 +368,7 @@ int process_cell(int coloum, int row, char *value, int *from_station_index,
         {
             printf("Invalid distances file.(Station Duplicate)\n");
             free(station_name_tmp);
-            return EXIT_OTHER_FAILURE;
+            return EXIT_FILECOTENT_FAILURE;
         }
     }
     // coloum 2+ : load the first cell as from_station and following cells are
