@@ -1,4 +1,3 @@
-// 20028309 scytg1 GAO TIANYI 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
