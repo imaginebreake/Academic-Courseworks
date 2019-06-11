@@ -6,8 +6,8 @@
 | [System And Architecture](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/sys_arch_cw) | 89.5 / 100 |
 | [Programming And Algorithms](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/pga_cw4) | 85 / 100 |
 | [Software Engineering CW01](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/se) | 80 / 100 |
-| [Software Engineering CW02](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/se) |  |
-| [Database And Interface](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/dbi_cw2) |  |
+| [Software Engineering CW02](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/se) | 17 / 20 |
+| [Database And Interface](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/dbi_cw2) | 22 / 25 |
 | [Fundmentals of Arificial Intelligence CW01](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/ai_cw1) | 14 / 15 |
 | [Fundmentals of Arificial Intelligence CW02](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/ai_cw2) | 10 / 10 |
 | [Programming Paradigms](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/pgp_fp) | 100 / 100 |
