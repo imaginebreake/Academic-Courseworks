@@ -11,4 +11,5 @@
 | [Fundmentals of Arificial Intelligence CW01](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/ai_cw1) | 14 / 15 |
 | [Fundmentals of Arificial Intelligence CW02](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/ai_cw2) | 10 / 10 |
 | [Programming Paradigms](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/pgp_fp) | 100 / 100 |
+| [Operating System and Concurrency](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/osc_cw) | 91 / 100 |
 
