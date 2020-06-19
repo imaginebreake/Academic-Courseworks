@@ -14,9 +14,10 @@
 | [Fundmentals of Arificial Intelligence CW02](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/ai_cw2) | 10 / 10 |
 | [Programming Paradigms](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/pgp_fp) | 100 / 100 |
 
-### UK 2
+### UK 2 (Contact me via Telegram for help)
 | CourseworkTitle | Final Mark |
 | :------: | :------: |
 | [Operating System and Concurrency](https://github.com/imaginebreake/Academic-Courseworks-Public/tree/master/osc_cw) | 91 / 100 |
 | [Software Maintenance](base64://aHR0cHM6Ly9naXRsYWIuY29tL3RpYW55aWdhby9mcm9nZ2Vy) | 89 / 100 |
-| [C++ Programming Language]() | 100 / 100 |
+| C++ Programming Language | 95+ / 100 |
+| Artificial Intelligence Methods | 85+ / 100 |
